@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -6,30 +7,30 @@ using SixLabors.ImageSharp.Processing;
 
 namespace Png2Braille
 {
-    internal class Program
+    internal static class Program
     {
-        public const int Width = 274;
-        public const int Height = 72;
-
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool SetConsoleOutputCP(uint wCodePageId);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool SetConsoleCP(uint wCodePageId);
 
-        private static void Main(string[] args)
+        private static void Main()
         {
+            var width = Console.LargestWindowWidth;
+            var height = Console.LargestWindowHeight;
             SetConsoleOutputCP(65001);
             SetConsoleCP(65001);
-            Console.SetWindowSize(Width, Height+1);
+            Console.SetWindowSize(width, height);
 
-            const string alphabet = "⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿⡀⡁⡂⡃⡄⡅⡆⡇⡈⡉⡊⡋⡌⡍⡎⡏⡐⡑⡒⡓⡔⡕⡖⡗⡘⡙⡚⡛⡜⡝⡞⡟⡠⡡⡢⡣⡤⡥⡦⡧⡨⡩⡪⡫⡬⡭⡮⡯⡰⡱⡲⡳⡴⡵⡶⡷⡸⡹⡺⡻⡼⡽⡾⡿⢀⢁⢂⢃⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿";
+            const string alphabet =
+                "⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿⡀⡁⡂⡃⡄⡅⡆⡇⡈⡉⡊⡋⡌⡍⡎⡏⡐⡑⡒⡓⡔⡕⡖⡗⡘⡙⡚⡛⡜⡝⡞⡟⡠⡡⡢⡣⡤⡥⡦⡧⡨⡩⡪⡫⡬⡭⡮⡯⡰⡱⡲⡳⡴⡵⡶⡷⡸⡹⡺⡻⡼⡽⡾⡿⢀⢁⢂⢃⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿";
 
             using var image = Image.Load<Rgb24>("test.jpg");
-            image.Mutate(x => x.Resize(Width * 2, Height * 4).Grayscale());
+            image.Mutate(x => x.Resize(width * 2, height * 4).Grayscale());
 
-            for (var y = 0; y < Height; y++)
-            for (var x = 0; x < Width; x++)
+            for (var y = 0; y < height; y++)
+            for (var x = 0; x < width; x++)
                 Console.Write(alphabet[GetCharId(x, y, image)]);
         }
 
@@ -39,18 +40,21 @@ namespace Png2Braille
             var minInd = -1;
             for (var i = 0; i < 256; i++)
             {
-                var s =
-                    Math.Abs(255 * ((i >> 0) & 1) - image[x*2+0, y*4+0].R) +
-                    Math.Abs(255 * ((i >> 1) & 1) - image[x*2+0, y*4+2].R) +
-                    Math.Abs(255 * ((i >> 2) & 1) - image[x*2+1, y*4+0].R) +
-                    Math.Abs(255 * ((i >> 3) & 1) - image[x*2+0, y*4+1].R) +
-                    Math.Abs(255 * ((i >> 4) & 1) - image[x*2+0, y*4+3].R) +
-                    Math.Abs(255 * ((i >> 5) & 1) - image[x*2+1, y*4+1].R) +
-                    Math.Abs(255 * ((i >> 6) & 1) - image[x*2+1, y*4+2].R) +
-                    Math.Abs(255 * ((i >> 7) & 1) - image[x*2+1, y*4+3].R);
-                if (s >= min) continue;
-                min = s;
-                minInd = i;
+                var s = new[]
+                    {
+                        (0, 0),
+                        (0, 2),
+                        (1, 0),
+                        (0, 1),
+                        (0, 3),
+                        (1, 1),
+                        (1, 2),
+                        (1, 3),
+                    }
+                    .Select((t, ind) => (t, ind))
+                    .Sum(t => Math.Abs(255 * ((i >> t.Item2) & 1) -
+                                       image[x * 2 + t.Item1.Item1, y * 4 + t.Item1.Item2].R));
+                if (s < min) (min, minInd) = (s, i);
             }
 
             return minInd;
